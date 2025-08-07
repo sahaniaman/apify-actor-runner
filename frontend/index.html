@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apify Actor Runner </title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <h1>Apify Runner</h1>
+                </div>
+                <div class="header-actions" id="header-actions" style="display: none;">
+                    <span class="user-info" id="user-info"></span>
+                    <button class="btn btn-outline" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Authentication Section -->
+            <section id="auth-section" class="section">
+                <div class="card auth-card">
+                    <div class="card-header">
+                        <i class="fas fa-key"></i>
+                        <h2>Connect Your Apify Account</h2>
+                        <p>Enter your Apify API key to get started</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="api-key">
+                                <i class="fas fa-lock"></i>
+                                API Key
+                            </label>
+                            <div class="input-group">
+                                <input type="password" id="api-key" placeholder="Enter your Apify API key">
+                                <button type="button" class="input-toggle" id="toggle-api-key">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="help-text">
+                                Find your API key in your 
+                                <a href="https://console.apify.com/account/integrations" target="_blank">
+                                    Apify Console <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </small>
+                        </div>
+                        <button id="validate-key" class="btn btn-primary btn-full">
+                            <i class="fas fa-check-circle"></i>
+                            Connect Account
+                        </button>
+                        <div id="auth-status" class="status-message"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actor Browser Section -->
+            <section id="actor-browser" class="section hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-search"></i>
+                        <h2>Browse Actors</h2>
+                        <p>Select an actor to run</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Actor Filters -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <button class="filter-btn active" data-filter="public">
+                                    <i class="fas fa-store"></i>
+                                    Apify Store
+                                </button>
+                                <button class="filter-btn" data-filter="my">
+                                    <i class="fas fa-user"></i>
+                                    My Actors
+                                </button>
+                            </div>
+                            <div class="search-group">
+                                <div class="search-input">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="actor-search" placeholder="Search actors...">
+                                </div>
+                                <select id="category-filter" style="display: none;">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Actor Grid -->
+                        <div id="actors-loading" class="loading-state">
+                            <div class="spinner"></div>
+                            <p>Loading actors...</p>
+                        </div>
+                        <div id="actors-grid" class="actors-grid hidden"></div>
+                        <div id="actors-empty" class="empty-state hidden">
+                            <i class="fas fa-robot"></i>
+                            <h3>No actors found</h3>
+                            <p>Try adjusting your search or filters</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actor Configuration Section -->
+            <section id="actor-config" class="section hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cog"></i>
+                        <h2 id="selected-actor-name">Configure Actor</h2>
+                        <p id="selected-actor-description">Configure the input parameters</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-tabs">
+                            <button class="tab-btn active" data-tab="visual">
+                                <i class="fas fa-edit"></i>
+                                Visual Editor
+                            </button>
+                            <button class="tab-btn" data-tab="json">
+                                <i class="fas fa-code"></i>
+                                JSON Editor
+                            </button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div id="visual-editor" class="tab-panel active">
+                                <div id="schema-form" class="schema-form"></div>
+                            </div>
+                            <div id="json-editor" class="tab-panel">
+                                <textarea id="json-input" placeholder="Enter JSON input..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button id="back-to-browse" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Browse
+                            </button>
+                            <button id="run-actor" class="btn btn-primary">
+                                <i class="fas fa-play"></i>
+                                Run Actor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="section hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h2>Execution Results</h2>
+                        <p>View your actor run output</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Run Status -->
+                        <div id="run-status" class="run-status">
+                            <div class="status-indicator">
+                                <div class="status-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="status-text">
+                                    <span class="status-label">Starting...</span>
+                                    <span class="status-details">Initializing actor run</span>
+                                </div>
+                            </div>
+                            <div class="run-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results Tabs -->
+                        <div class="results-tabs hidden" id="results-tabs">
+                            <button class="tab-btn active" data-tab="preview">
+                                <i class="fas fa-eye"></i>
+                                Preview
+                            </button>
+                            <button class="tab-btn" data-tab="raw">
+                                <i class="fas fa-code"></i>
+                                Raw Data
+                            </button>
+                            <button class="tab-btn" data-tab="stats">
+                                <i class="fas fa-chart-bar"></i>
+                                Statistics
+                            </button>
+                        </div>
+
+                        <!-- Results Content -->
+                        <div class="results-content hidden" id="results-content">
+                            <div id="results-preview" class="tab-panel active">
+                                <div id="results-table"></div>
+                            </div>
+                            <div id="results-raw" class="tab-panel">
+                                <pre id="raw-output"></pre>
+                            </div>
+                            <div id="results-stats" class="tab-panel">
+                                <div id="stats-content"></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button id="new-run" class="btn btn-outline">
+                                <i class="fas fa-redo"></i>
+                                New Run
+                            </button>
+                            <button id="download-results" class="btn btn-secondary" style="display: none;">
+                                <i class="fas fa-download"></i>
+                                Download Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; Apify Actor Runner</p>
+                <div class="footer-links">
+                    <a href="https://apify.com" target="_blank">Apify.com</a>
+                    <a href="https://docs.apify.com" target="_blank">Documentation</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
